@@ -4,6 +4,28 @@ const connectDB = require('../db')
 
 connectDB().then(db => {
     let collection = db.collection("grades");
+    const validationRules = {
+      $jsonSchema: {
+        bsonType: 'object',
+        required: ['student_id', 'class_id'],
+        properties: {
+          student_id: {
+            bsonType: 'int',
+            description: 'must be integer and is required'
+          },
+          class_id: {
+            bsonType: 'int',
+            minimum: 0, 
+            maximum:300,
+            description: 'must be an integer and is required'
+          }
+        }
+      }
+    };
+    collection.createIndex({ class_id: 1 })
+    collection.createIndex({ student_id: 1 })
+    collection.createIndex({ student_id:1, class_id: 1 }) // compound index
+    
 
     //The number of learners with a weighted average 
     //(as calculated by the existing routes) higher than 70%.
@@ -109,6 +131,30 @@ connectDB().then(db => {
     //mimic the above aggregation pipeline, but only for learners within a class
     router.get('/stats/:id',async(req,res)=>{
       const class_id = Number(req.params.id)
+      const totalLearnerPerClass = await collection.aggregate([
+        {
+          $match:{
+            "class_id":class_id
+          }
+        },
+        {
+         $group:{
+           _id:"$student_id",
+           count:{
+             $sum:1
+           }
+         }
+        },
+        {
+         $group:{
+           _id:"null",
+           count:{
+             $sum:1
+           }  
+         }
+        } 
+      ]).toArray();
+
       const learnersAvgHigher70 = await collection.aggregate([
             {
               $match:{
@@ -178,7 +224,13 @@ connectDB().then(db => {
               }
             }
       ]).toArray()
-      res.json(learnersAvgHigher70)
+      if( totalLearnerPerClass.length == 0 || learnersAvgHigher70.length ==0) return res.json({error:"can't find class"})
+      const stats = {
+        totalLearnerPerClass : totalLearnerPerClass[0].count,
+        learnersAvgHigher70 : learnersAvgHigher70[0].count,
+        percentage : learnersAvgHigher70[0].count/totalLearnerPerClass[0].count *100
+      }   
+      res.json(stats)
     })
 
 
