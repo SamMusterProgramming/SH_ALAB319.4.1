@@ -3,12 +3,12 @@ require('dotenv').config();
 
 const client = new MongoClient(process.env.ATLAS_URL);
 
-
+    
 async function connectDB() {
   try {
     await client.connect();
     console.log('Connected to MongoDB');
-    const db = client.db('grades'); 
+    const db = client.db('sample_training'); 
     return db;
   } catch (err) {
     console.error('Error connecting to MongoDB:', err);

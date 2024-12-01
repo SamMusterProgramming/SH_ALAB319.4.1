@@ -5,7 +5,7 @@ const  {ObjectId} = require('mongodb')
 const router = express.Router();
  
 
-connectDB().then(db=> {
+connectDB().then(db => {
 
     const collection =  db.collection("grades");
    // Create a single grade entry
@@ -20,15 +20,15 @@ router.post("/", async (req, res) => {
 
   let result = await collection.insertOne(newDocument);
   res.send(result).status(204);
-});
-
-// Get a single grade entry
+  });  
+ 
+// Get a single grade entry 
 router.get("/:id", async (req, res) => {
-
-  let query = { _id: ObjectId(req.params.id) };
-  let result = await collection.findOne(query);
-
-  if (!result) res.send("Not found").status(404);
+  
+  let query = { _id:new ObjectId(req.params.id) };
+  let result = await collection.findOne(query); 
+    
+  if (!result) return  res.send("Not found").status(404);
   else res.send(result).status(200);
 });
 

@@ -7,7 +7,7 @@ const PORT = process.env.PORT;
 const app = express();
 app.use(express.json())
 
-app.use('/gradess', gradesRoute)
+app.use('/grades', gradesRoute)
 app.use('/grades_agg',grades_aggRoute)
 
 app.get('/',(req,res)=> {
